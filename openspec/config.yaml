@@ -39,7 +39,12 @@ testing: |
   | Type checker | ❌ | — |
   | Formatter | ❌ | — |
 
+directives:
+  - "error-repair-priority: Fixing errors is ALWAYS priority before advancing or creating new features. If any error or regression is found, STOP, fix it first, then continue."
+
 rules:
+  global:
+    - Error repair takes precedence over all new work.
   proposal:
     - Include rollback plan for risky changes
   specs:
