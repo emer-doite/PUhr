@@ -1,0 +1,46 @@
+# Android / Kotlin
+*.class
+*.dex
+*.apk
+*.aab
+*.ap_
+*.aab_
+*.dex
+*.jar
+*.war
+*.nar
+*.ear
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+*.swp
+*.swo
+*~
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Keystore (sensitive!)
+*.jks
+*.keystore

@@ -1,0 +1,63 @@
+schema: spec-driven
+
+context: |
+  Project: PhantomVault (public name "Timely")
+  Description: Disguised clock app → hidden encrypted file vault
+  Stack: Kotlin 2.x, Jetpack Compose, Material 3, Hilt, Room + SQLCipher,
+    AES-256-GCM, Argon2id, Android Keystore, Coroutines + Flow
+  Architecture: Clean Architecture + MVVM + MVI
+  State: Empty project folder — no Android scaffold, no build system yet
+  Blueprint: plam.md (1278-line full design document)
+
+strict_tdd: false
+
+testing: |
+  **Strict TDD Mode**: disabled
+  **Detected**: 2026-06-10
+  **Reason**: No build system, test runner, or Android project scaffold detected.
+    Enable strict TDD once `./gradlew test` is available.
+
+  ### Test Runner
+  - Command: none detected
+  - Framework: none detected
+
+  ### Test Layers
+  | Layer | Available | Tool |
+  | --- | --- | --- |
+  | Unit | ❌ | — |
+  | Integration | ❌ | — |
+  | E2E | ❌ | — |
+
+  ### Coverage
+  - Available: ❌
+  - Command: —
+
+  ### Quality Tools
+  | Tool | Available | Command |
+  | --- | --- | --- |
+  | Linter | ❌ | — |
+  | Type checker | ❌ | — |
+  | Formatter | ❌ | — |
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    - Follow existing code patterns
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: ""
+    build_command: ""
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
