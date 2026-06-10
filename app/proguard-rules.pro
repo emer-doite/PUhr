@@ -1,0 +1,4 @@
+-keep class PUhr.data.db.entity.** { *; }
+-keep class dagger.hilt.** { *; }
+-keep class com.lambdapioneer.argon2kt.** { *; }
+-keep class net.sqlcipher.** { *; }

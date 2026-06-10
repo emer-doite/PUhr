@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<style name="Theme.PhantomVault" parent="Theme.Material3.Dark.NoActionBar">
+    <item name="colorPrimary">#C8A96E</item>
+    <item name="colorOnPrimary">#0A0A0C</item>
+    <item name="colorSurface">#141416</item>
+    <item name="colorOnSurface">#F2EDE4</item>
+    <item name="android:colorBackground">#0A0A0C</item>
+    <item name="android:statusBarColor">#0A0A0C</item>
+    <item name="android:navigationBarColor">#0A0A0C</item>
+</style>
+</resources>
