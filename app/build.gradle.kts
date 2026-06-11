@@ -72,4 +72,6 @@ dependencies {
     implementation(libs.sqlcipher)
     ksp(libs.hilt.compiler)
     ksp(libs.room.compiler)
+
+    testImplementation("junit:junit:4.13.2")
 }
