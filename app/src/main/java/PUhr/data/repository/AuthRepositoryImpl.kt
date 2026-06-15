@@ -53,7 +53,7 @@ class AuthRepositoryImpl @Inject constructor(
             .apply()
         val vek = derived.copyOfRange(0, 32)
         val dbk = derived.copyOfRange(32, 64)
-        sessionManager.openSession(vek)
+        sessionManager.openSession(vek, dbk)
         return SetupResult.Success(dbk)
     }
 
@@ -83,7 +83,7 @@ class AuthRepositoryImpl @Inject constructor(
                 .apply()
             val vek = derived.copyOfRange(0, 32)
             val dbk = derived.copyOfRange(32, 64)
-            sessionManager.openSession(vek)
+            sessionManager.openSession(vek, dbk)
             return UnlockResult.Success(dbk)
         }
 
