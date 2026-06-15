@@ -12,14 +12,14 @@ class ArgonKeyDeriverInstrumentedTest {
     private val deriver = ArgonKeyDeriver()
 
     @Test
-    fun samePinAndSalt_producesSame32ByteOutput() {
+    fun samePinAndSalt_producesSame64ByteOutput() {
         val pin = "1234"
         val salt = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
 
         val result1 = deriver.derive(pin, salt)
         val result2 = deriver.derive(pin, salt)
 
-        assertEquals(32, result1.size)
+        assertEquals(64, result1.size)
         assertArrayEquals(result1, result2)
     }
 
@@ -32,8 +32,22 @@ class ArgonKeyDeriverInstrumentedTest {
         val result1 = deriver.derive(pin, salt1)
         val result2 = deriver.derive(pin, salt2)
 
-        assertEquals(32, result1.size)
-        assertEquals(32, result2.size)
+        assertEquals(64, result1.size)
+        assertEquals(64, result2.size)
         assertFalse(result1.contentEquals(result2))
+    }
+
+    @Test
+    fun outputSplitsIntoVekAndDbk() {
+        val pin = "1234"
+        val salt = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+
+        val result = deriver.derive(pin, salt)
+
+        val vek = result.copyOfRange(0, 32)
+        val dbk = result.copyOfRange(32, 64)
+        assertEquals(32, vek.size)
+        assertEquals(32, dbk.size)
+        assertFalse(vek.contentEquals(dbk))
     }
 }

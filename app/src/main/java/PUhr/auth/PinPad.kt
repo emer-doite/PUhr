@@ -35,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import kotlinx.coroutines.delay
 
 @Composable
@@ -60,7 +62,9 @@ fun PinPad(
     }
 
     Column(
-        modifier = modifier.offset(x = shakeOffset.value.dp),
+        modifier = modifier
+            .offset(x = shakeOffset.value.dp)
+            .semantics { testTag = "PinPad" },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         DotsRow(dotsCount = dotsCount)
@@ -81,7 +85,10 @@ fun PinPad(
 private fun DotsRow(dotsCount: Int) {
     Row(
         horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth().height(48.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .semantics { testTag = "DotsRow:$dotsCount" },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         for (i in 0 until dotsCount) {
@@ -147,7 +154,7 @@ private fun KeypadGrid(
                 label = "",
                 enabled = enabled,
                 onClick = onBackspace,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).semantics { testTag = "Backspace" },
             ) {
                 Text(
                     text = "\u232B",
@@ -159,7 +166,7 @@ private fun KeypadGrid(
                 label = "",
                 enabled = enabled && dotsCount > 0,
                 onClick = onSubmit,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).semantics { testTag = "Submit" },
             ) {
                 SubmitButton()
             }
