@@ -9,7 +9,7 @@ class ArgonKeyDeriver @Inject constructor() : KeyDeriver {
         private const val MEMORY_KB = 65536
         private const val ITERATIONS = 3
         private const val PARALLELISM = 4
-        private const val KEY_LENGTH_BYTES = 32
+        private const val KEY_LENGTH_BYTES = 64
     }
 
     override fun derive(pin: String, salt: ByteArray): ByteArray {

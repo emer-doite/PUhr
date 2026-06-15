@@ -70,13 +70,19 @@ dependencies {
     implementation(libs.biometric)
     implementation(libs.argon2)
     implementation(libs.sqlcipher)
+    implementation(libs.security.crypto)
     ksp(libs.hilt.compiler)
     ksp(libs.room.compiler)
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.mockk)
+    testImplementation(libs.coroutines.test)
 
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test:rules:1.5.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
