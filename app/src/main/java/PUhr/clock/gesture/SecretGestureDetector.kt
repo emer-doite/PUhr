@@ -1,79 +1,87 @@
 package PUhr.clock.gesture
 
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.awaitEachGesture
-import androidx.compose.ui.input.pointer.awaitFirstDown
-import androidx.compose.ui.input.pointer.awaitHorizontalDragOrCancellation
-import androidx.compose.ui.input.pointer.awaitPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.waitForUpOrCancellation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.concurrent.TimeUnit
 
 fun Modifier.secretGestureDetector(
     config: GestureConfig = GestureConfig(),
     onTrigger: () -> Unit,
 ): Modifier = this.pointerInput(config) {
+    val swipeMinPx = config.swipeMinDp.dp.toPx()
     awaitEachGesture {
         val startNanos = System.nanoTime()
 
         // Step 1: 3 taps within tapWindowMs
-        var firstTapNanos = 0L
-        val tapsDone = withTimeoutOrNull(config.tapWindowMs) {
-            repeat(3) { i ->
+        val tapResult = withTimeoutOrNull(config.tapWindowMs) {
+            repeat(3) {
                 val down = awaitFirstDown(requireUnconsumed = false)
-                if (i == 0) firstTapNanos = System.nanoTime()
-                if (waitForUpOrCancellation() == null) return@withTimeoutOrNull null
+                if (waitForUpOrCancellation() == null) return@withTimeoutOrNull false
             }
             true
-        } ?: return@awaitEachGesture
+        }
+        if (tapResult != true) return@awaitEachGesture
 
         // Step 2: swipe left (min swipeMinDp)
-        val swipeMinPx = config.swipeMinDp.dp.toPx()
-        val step2Timeout = config.totalTimeoutMs -
-            TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos)
+        val elapsedMs1 = nanosToMs(System.nanoTime() - startNanos)
+        val step2Timeout = config.totalTimeoutMs - elapsedMs1
         if (step2Timeout <= 0) return@awaitEachGesture
 
-        val swipeOk = withTimeoutOrNull(step2Timeout) {
+        val swipeResult = withTimeoutOrNull(step2Timeout) {
             val down = awaitFirstDown(requireUnconsumed = false)
-            var total = 0f
-            while (total > -swipeMinPx) {
-                val delta = awaitHorizontalDragOrCancellation(down.id)
-                    ?: return@withTimeoutOrNull false
-                total += delta
+            var totalDeltaX = 0f
+            var pointerId = down.id
+            var cancelled = false
+
+            while (!cancelled && totalDeltaX > -swipeMinPx) {
+                val event = awaitPointerEvent(PointerEventPass.Main)
+                val change = event.changes.firstOrNull { it.id == pointerId }
+                if (change == null || !change.pressed) {
+                    cancelled = true
+                } else {
+                    totalDeltaX += (change.position.x - change.previousPosition.x)
+                    change.consume()
+                }
             }
-            true
-        } ?: return@awaitEachGesture
+            !cancelled && totalDeltaX <= -swipeMinPx
+        }
+        if (swipeResult != true) return@awaitEachGesture
 
         // Step 3: long press at lower longPressLowerFraction of container
-        val lowerY = size.height * (1f - config.longPressLowerFraction)
-        val step3Timeout = config.totalTimeoutMs -
-            TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos)
+        val elapsedMs2 = nanosToMs(System.nanoTime() - startNanos)
+        val step3Timeout = config.totalTimeoutMs - elapsedMs2
         if (step3Timeout <= 0) return@awaitEachGesture
 
-        val down = withTimeoutOrNull(step3Timeout) {
+        val lowerY = size.height * (1f - config.longPressLowerFraction)
+
+        val downResult = withTimeoutOrNull(step3Timeout) {
             awaitFirstDown(requireUnconsumed = false)
-        } ?: return@awaitEachGesture
+        }
+        if (downResult == null) return@awaitEachGesture
 
-        if (down.position.y < lowerY) return@awaitEachGesture
+        // Check if press is in lower zone
+        if (downResult.position.y < lowerY) return@awaitEachGesture
 
+        // Hold for longPressMs — poll pointer events
         val holdStartNanos = System.nanoTime()
-        var held = false
-        while (!held) {
-            val holdElapsedMs = TimeUnit.NANOSECONDS.toMillis(
-                System.nanoTime() - holdStartNanos
-            )
+        var heldLongEnough = false
+        var pointerReleased = false
+
+        while (!heldLongEnough && !pointerReleased) {
+            val holdElapsedMs = nanosToMs(System.nanoTime() - holdStartNanos)
+            val totalElapsedMs = nanosToMs(System.nanoTime() - startNanos)
             val holdRemainingMs = config.longPressMs - holdElapsedMs
-            val totalElapsedMs = TimeUnit.NANOSECONDS.toMillis(
-                System.nanoTime() - startNanos
-            )
             val totalRemainingMs = config.totalTimeoutMs - totalElapsedMs
             val waitMs = minOf(holdRemainingMs, totalRemainingMs)
 
             if (waitMs <= 0) {
-                if (holdRemainingMs <= 0) held = true
+                heldLongEnough = holdRemainingMs <= 0
                 break
             }
 
@@ -82,17 +90,22 @@ fun Modifier.secretGestureDetector(
             }
 
             if (event == null) {
-                if (holdRemainingMs <= 0) {
-                    held = true
-                    break
-                }
-                return@awaitEachGesture
+                heldLongEnough = nanosToMs(System.nanoTime() - holdStartNanos) >= config.longPressMs
+                break
             }
 
-            val isDown = event.changes.any { it.id == down.id && it.pressed }
-            if (!isDown) return@awaitEachGesture
+            val stillDown = event.changes.any { change ->
+                change.id == downResult.id && change.pressed
+            }
+            if (!stillDown) {
+                pointerReleased = true
+            }
         }
 
-        onTrigger()
+        if (heldLongEnough) {
+            onTrigger()
+        }
     }
 }
+
+private fun nanosToMs(nanos: Long): Long = nanos / 1_000_000
