@@ -90,17 +90,18 @@ The system MUST generate 128-bit (16-byte) cryptographically random salts via ja
 
 ### Requirement: Session Management (REQ-CRYPTO-06)
 
-The system MUST hold the VEK in a ByteArray in memory only — never persisted. closeSession MUST zero-fill the array before setting it to null.
+The system MUST hold the VEK and DBK in ByteArrays in memory only — never persisted. closeSession MUST zero-fill both arrays before setting them to null.
 
-#### Scenario: Open and retrieve session key
-- GIVEN a 256-bit VEK
-- WHEN openSession(VEK) is called
-- THEN getKey returns the VEK
+#### Scenario: Open and retrieve session keys
+- GIVEN a 256-bit VEK and a 256-bit DBK
+- WHEN openSession(VEK, DBK) is called
+- THEN getVek() returns the VEK and getDbk() returns the DBK
 
-#### Scenario: Close session zero-fills key
-- GIVEN an open session with a VEK stored
+#### Scenario: Close session zero-fills both keys
+- GIVEN an open session with VEK and DBK stored
 - WHEN closeSession is called
-- THEN the stored ByteArray is filled with zeros and getKey returns null
+- THEN both ByteArrays are filled with zeros
+- AND getVek() and getDbk() return null
 
 #### Scenario: Close with no active session is safe
 - GIVEN no session is open
