@@ -23,12 +23,17 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import java.time.LocalTime
 import kotlinx.coroutines.delay
+import PUhr.clock.gesture.GestureConfig
+import PUhr.clock.gesture.secretGestureDetector
 
 fun LocalTime.formatHMS(): String =
     this.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))
 
 @Composable
-fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
+fun ClockScreen(
+    onTriggerDetected: () -> Unit = {},
+    viewModel: ClockViewModel = hiltViewModel(),
+) {
     var digitalTime by remember { mutableStateOf("") }
     var hourAngle by remember { mutableFloatStateOf(0f) }
     var minuteAngle by remember { mutableFloatStateOf(0f) }
@@ -55,7 +60,8 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.systemBars),
+            .windowInsetsPadding(WindowInsets.systemBars)
+            .secretGestureDetector(GestureConfig(), onTriggerDetected),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
