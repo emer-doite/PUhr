@@ -14,7 +14,7 @@ fun Modifier.secretGestureDetector(
     config: GestureConfig = GestureConfig(),
     onTrigger: () -> Unit,
 ): Modifier = this.pointerInput(config) {
-    val swipeMinPx = config.swipeMinDp.dp.toPx()
+    val swipeMinPx = config.swipeMinLengthDp.dp.toPx()
     val tapTolerancePx = config.tapToleranceDp.dp.toPx()
     awaitEachGesture {
         val startNanos = System.nanoTime()
@@ -48,7 +48,7 @@ fun Modifier.secretGestureDetector(
         }
         if (tapResult != true) return@awaitEachGesture
 
-        // Step 2: swipe left (min swipeMinDp) within swipeTimeoutMs
+        // Step 2: swipe left (min swipeMinLengthDp) within swipeTimeoutMs
         val elapsedMs1 = nanosToMs(System.nanoTime() - startNanos)
         val step2Timeout = minOf(config.swipeTimeoutMs, config.totalTimeoutMs - elapsedMs1)
         if (step2Timeout <= 0) return@awaitEachGesture
@@ -88,7 +88,7 @@ fun Modifier.secretGestureDetector(
         // Check if press is in lower zone
         if (downResult.position.y < lowerY) return@awaitEachGesture
 
-        // Hold for longPressMs — poll pointer events
+        // Hold for longPressHoldMs — poll pointer events
         val holdStartNanos = System.nanoTime()
         var heldLongEnough = false
         var pointerReleased = false
@@ -96,7 +96,7 @@ fun Modifier.secretGestureDetector(
         while (!heldLongEnough && !pointerReleased) {
             val holdElapsedMs = nanosToMs(System.nanoTime() - holdStartNanos)
             val totalElapsedMs = nanosToMs(System.nanoTime() - startNanos)
-            val holdRemainingMs = config.longPressMs - holdElapsedMs
+            val holdRemainingMs = config.longPressHoldMs - holdElapsedMs
             val totalRemainingMs = config.totalTimeoutMs - totalElapsedMs
             val waitMs = minOf(holdRemainingMs, totalRemainingMs)
 
@@ -110,7 +110,7 @@ fun Modifier.secretGestureDetector(
             }
 
             if (event == null) {
-                heldLongEnough = nanosToMs(System.nanoTime() - holdStartNanos) >= config.longPressMs
+                heldLongEnough = nanosToMs(System.nanoTime() - holdStartNanos) >= config.longPressHoldMs
                 break
             }
 
