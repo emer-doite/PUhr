@@ -4,10 +4,10 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.withTimeoutOrNull
 
 fun Modifier.secretGestureDetector(
@@ -15,22 +15,42 @@ fun Modifier.secretGestureDetector(
     onTrigger: () -> Unit,
 ): Modifier = this.pointerInput(config) {
     val swipeMinPx = config.swipeMinDp.dp.toPx()
+    val tapTolerancePx = config.tapToleranceDp.dp.toPx()
     awaitEachGesture {
         val startNanos = System.nanoTime()
 
-        // Step 1: 3 taps within tapWindowMs
-        val tapResult = withTimeoutOrNull(config.tapWindowMs) {
-            repeat(3) {
+        // Step 1: 3 taps within tapSequenceTimeoutMs, each within tapToleranceDp of center
+        val centerX = size.width / 2f
+        val centerY = size.height / 2f
+
+        val tapResult = withTimeoutOrNull(config.tapSequenceTimeoutMs) {
+            var lastTapNanos = 0L
+            repeat(3) { index ->
                 val down = awaitFirstDown(requireUnconsumed = false)
-                if (waitForUpOrCancellation() == null) return@withTimeoutOrNull false
+                // Check center tolerance
+                val dx = down.position.x - centerX
+                val dy = down.position.y - centerY
+                if (dx * dx + dy * dy > tapTolerancePx * tapTolerancePx) {
+                    return@withTimeoutOrNull false
+                }
+                // Check per-tap interval (skip first tap)
+                if (index > 0 && lastTapNanos > 0L) {
+                    val intervalMs = nanosToMs(System.nanoTime() - lastTapNanos)
+                    if (intervalMs > config.tapMaxIntervalMs) {
+                        return@withTimeoutOrNull false
+                    }
+                }
+                val up = waitForUpOrCancellation()
+                if (up == null) return@withTimeoutOrNull false
+                lastTapNanos = System.nanoTime()
             }
             true
         }
         if (tapResult != true) return@awaitEachGesture
 
-        // Step 2: swipe left (min swipeMinDp)
+        // Step 2: swipe left (min swipeMinDp) within swipeTimeoutMs
         val elapsedMs1 = nanosToMs(System.nanoTime() - startNanos)
-        val step2Timeout = config.totalTimeoutMs - elapsedMs1
+        val step2Timeout = minOf(config.swipeTimeoutMs, config.totalTimeoutMs - elapsedMs1)
         if (step2Timeout <= 0) return@awaitEachGesture
 
         val swipeResult = withTimeoutOrNull(step2Timeout) {

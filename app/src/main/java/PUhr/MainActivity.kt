@@ -4,6 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -14,7 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import PUhr.auth.AuthScreen
 import PUhr.clock.ClockScreen
-import PUhr.clock.gesture.VaultHomeScreen
+import PUhr.vault.VaultHomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -43,7 +48,10 @@ class MainActivity : ComponentActivity() {
                     startDestination = "clock",
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    composable("clock") {
+                    composable(
+                        "clock",
+                        exitTransition = { fadeOut(tween(400)) },
+                    ) {
                         ClockScreen(
                             onTriggerDetected = {
                                 navController.navigate("auth") {
@@ -52,7 +60,11 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                     }
-                    composable("auth") {
+                    composable(
+                        "auth",
+                        enterTransition = { scaleIn(initialScale = 0.95f, animationSpec = tween(400)) + fadeIn(tween(400)) },
+                        exitTransition = { fadeOut(tween(400)) },
+                    ) {
                         AuthScreen(
                             onVerified = {
                                 navController.navigate("vault") {
@@ -61,7 +73,10 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                     }
-                    composable("vault") {
+                    composable(
+                        "vault",
+                        enterTransition = { scaleIn(initialScale = 0.95f, animationSpec = tween(400)) + fadeIn(tween(400)) },
+                    ) {
                         VaultHomeScreen()
                     }
                 }
