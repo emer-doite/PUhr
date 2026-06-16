@@ -4,10 +4,21 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import PUhr.auth.AuthScreen
 import PUhr.clock.ClockScreen
+import PUhr.clock.gesture.VaultHomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -30,7 +41,34 @@ class MainActivity : ComponentActivity() {
                     onError = Color(0xFF0A0A0C),
                 )
             ) {
-                ClockScreen()
+                val navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = "clock",
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    composable("clock") {
+                        ClockScreen(
+                            onTriggerDetected = {
+                                navController.navigate("auth") {
+                                    popUpTo("clock") { inclusive = true }
+                                }
+                            },
+                        )
+                    }
+                    composable("auth") {
+                        AuthScreen(
+                            onVerified = {
+                                navController.navigate("vault") {
+                                    popUpTo("auth") { inclusive = true }
+                                }
+                            },
+                        )
+                    }
+                    composable("vault") {
+                        VaultHomeScreen()
+                    }
+                }
             }
         }
     }
