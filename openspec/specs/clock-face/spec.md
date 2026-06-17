@@ -95,3 +95,26 @@ The system SHALL NOT show any vault-related UI elements. The system SHALL NOT ex
 - WHEN the clock face renders
 - THEN it displays ONLY clock-related content
 - AND no secondary UI elements beyond the clock
+
+### Requirement: Gesture Integration Surface (REQ-CLOCK-06)
+
+`ClockScreen` MUST accept an `onTriggerDetected: () -> Unit` callback parameter. The `ClockScreen` `Column` MUST apply a `Modifier.pointerInput` for gesture detection. The `Column` SHALL be the gesture container — `AnalogClockFace` and the digital readout render as children without pointer input modifications. The clock's visual appearance MUST remain identical with or without gesture detection active.
+
+#### Scenario: ClockScreen accepts onTriggerDetected callback
+
+- GIVEN ClockScreen is composable
+- WHEN it is invoked with an `onTriggerDetected` lambda
+- THEN the lambda is called when the compound gesture sequence completes
+
+#### Scenario: Clock appearance unchanged with gesture
+
+- GIVEN ClockScreen renders with gesture detection
+- WHEN the clock face and digital readout are inspected
+- THEN they appear identical to a ClockScreen without gesture detection
+
+#### Scenario: Gesture events do not interfere with clock rendering
+
+- GIVEN ClockScreen is rendering with gesture detection
+- WHEN the user taps anywhere on the clock screen
+- THEN the gesture detector receives the event
+- AND the clock rendering is visually unaffected
